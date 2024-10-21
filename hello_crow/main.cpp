@@ -7,7 +7,7 @@ int main() {
 
     CROW_ROUTE(app, "/")
         ([](const request &req, response &res){
-            ifstream in("../../hello_crow/public/index.html", ifstream::in);
+            ifstream in("public/index.html", ifstream::in);
 
             if (in) {
                 ostringstream contents;
