@@ -1,4 +1,26 @@
 #include <crow.h>
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+
+#include <bsoncxx/v_noabi/bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/v_noabi/bsoncxx/json.hpp>
+#include <bsoncxx/v_noabi/bsoncxx/oid.hpp>
+#include <mongocxx/v_noabi/mongocxx/client.hpp>
+#include <mongocxx/v_noabi/mongocxx/stdx.hpp>
+#include <mongocxx/v_noabi/mongocxx/uri.hpp>
+#include <mongocxx/v_noabi/mongocxx/instance.hpp>
+
+using bsoncxx::builder::stream::close_array;
+using bsoncxx::builder::stream::close_document;
+using bsoncxx::builder::stream::document;
+using bsoncxx::builder::stream::finalize;
+using bsoncxx::builder::stream::open_array;
+using bsoncxx::builder::stream::open_document;
+using bsoncxx::builder::basic::kvp;
+using mongocxx::cursor;
+
 using namespace std;
 using namespace crow;
 
