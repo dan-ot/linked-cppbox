@@ -58,6 +58,11 @@ int main() {
             send_image(res, filename);
         });
 
+    CROW_ROUTE(app, "/<string>")
+        ([](const request &req, response &res, string page){
+            send_html(res, page);
+        });
+
     char *port = getenv("PORT");
     uint16_t iport = static_cast<uint16_t>(port != nullptr ? stoi(port) : 18080);
     cout << "PORT = " << iport << "\n";
