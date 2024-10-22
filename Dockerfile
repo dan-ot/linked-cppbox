@@ -19,3 +19,5 @@ RUN cmake --build . && cmake --build . --target install
 WORKDIR /
 RUN rm -rf mongo-cxx-driver-r3.11.0
 RUN rm mongo-cxx-driver-r3.11.0.tar.gz
+
+ENV AZURE_COSMOS_CONNECTIONSTRING=mongodb://ot-learning-cpp:4kb8BOOlEd0IJeDosuaZW5RJ9VbwdJIgtbE5tIog21uLZhhkpd1jhcCd4zXxkKUHaXCWuxxvQAm7ACDbIWwH3Q==@ot-learning-cpp.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@ot-learning-cpp@

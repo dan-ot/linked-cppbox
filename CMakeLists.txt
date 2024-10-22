@@ -9,6 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 include_directories(${Crow_INCLUDE_DIRS} ${Threads_INCLUDE_DIRS} PRIVATE ${MONGO_INCLUDE_DIRS})
-link_directories(${Crow_LIBRARIES} ${Threads_LIBRARIES} PRIVATE ${MONGO_LIBRARIES})
+link_directories(${Crow_LIBRARIES} ${Threads_LIBRARIES} ${MONGO_LIBRARY_DIRS})
 
 add_subdirectory(hello_crow)

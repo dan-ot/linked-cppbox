@@ -1,9 +1,9 @@
-#include <crow.h>
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <cstdlib>
 
+#include <crow.h>
 #include <bsoncxx/v_noabi/bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/v_noabi/bsoncxx/json.hpp>
 #include <bsoncxx/v_noabi/bsoncxx/oid.hpp>
@@ -59,6 +59,25 @@ void send_style(response &res, string style) {
 
 int main() {
     crow::SimpleApp app;
+
+    mongocxx::instance inst {};
+    string mongo_connect = string(getenv("AZURE_COSMOS_CONNECTIONSTRING"));
+    mongocxx::client conn {mongocxx::uri {mongo_connect}};
+    auto collection = conn["hello"]["contacts"];
+
+    CROW_ROUTE(app, "/contacts")
+        ([&collection]() {
+            mongocxx::options::find opts;
+            opts.skip(9);
+            opts.limit(10);
+            auto docs = collection.find({}, opts);
+            ostringstream os;
+            for (auto &&doc : docs) {
+                os << bsoncxx::to_json(doc) << "\n";
+            }
+
+            return crow::response(os.str());
+        });
 
     CROW_ROUTE(app, "/")
         ([](const request &req, response &res){
