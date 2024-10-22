@@ -179,6 +179,19 @@ int main() {
             res.end();
         });
 
+    CROW_ROUTE(app, "/query")
+        ([](const request &req, response &res){
+            auto firstname = req.url_params.get("firstname");
+            auto lastname = req.url_params.get("lastname");
+            ostringstream os;
+
+            os << "Hello " << (firstname ? firstname : "") <<
+                " " << (lastname ? lastname : "") << endl;
+            res.set_header("Content-Type", "text/plain");
+            res.write(os.str());
+            res.end();
+        });
+
     char *port = getenv("PORT");
     uint16_t iport = static_cast<uint16_t>(port != nullptr ? stoi(port) : 18080);
     std::cout << "PORT = " << iport << "\n";
