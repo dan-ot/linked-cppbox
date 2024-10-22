@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8">
+        <title>Contact: {{firstName}} {{lastName}}</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/1.0.0/css/bulma.min.css" />
+    </head>
+    <body>
+        <section class="section">
+            <div class="card">
+                <div class="card-image">
+                    <figure class="image is-4by3">
+                        <img 
+                            src="{{photo}}"
+                            alt="Picture of {{firstName}} {{lastName}}"
+                        />
+                    </figure>
+                </div>
+                <div class="card-header">
+                    <p class="card-header-title">{{firstName}} {{lastName}}</p>
+                </div>
+                <div class="card-content">
+                    Email: {{email}}
+                    <hr />
+                    Phone: {{phone}}
+                </div>
+            </div>
+        </section>
+    </body>
+</html>

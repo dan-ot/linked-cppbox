@@ -19,10 +19,16 @@ using bsoncxx::builder::stream::finalize;
 using bsoncxx::builder::stream::open_array;
 using bsoncxx::builder::stream::open_document;
 using bsoncxx::builder::basic::kvp;
+using bsoncxx::builder::basic::make_document;
 using mongocxx::cursor;
 
 using namespace std;
 using namespace crow;
+using namespace crow::mustache;
+
+string get_view(const string &filename, context &x) {
+    return load(filename + ".html").render_string(x);
+}
 
 void send_file(response &res, string filename, string content_type) {
     ifstream in("public/" + filename, ifstream::in);
@@ -65,18 +71,32 @@ int main() {
     mongocxx::client conn {mongocxx::uri {mongo_connect}};
     auto collection = conn["hello"]["contacts"];
 
+    CROW_ROUTE(app, "/contact/<string>")
+        ([&collection](string email) {
+            auto doc = collection.find_one(make_document(kvp("email", email)));
+            crow::json::wvalue dto;
+
+            dto = json::load(bsoncxx::to_json(doc.value().view()));
+            return get_view("contact", dto);
+        });
+
     CROW_ROUTE(app, "/contacts")
         ([&collection]() {
             mongocxx::options::find opts;
             opts.skip(9);
             opts.limit(10);
             auto docs = collection.find({}, opts);
-            ostringstream os;
-            for (auto &&doc : docs) {
-                os << bsoncxx::to_json(doc) << "\n";
+            crow::json::wvalue dto;
+            vector<crow::json::rvalue> contacts;
+
+            contacts.reserve(10);
+            for (auto doc : docs) {
+                contacts.push_back(json::load(bsoncxx::to_json(doc)));
             }
 
-            return crow::response(os.str());
+            dto["contacts"] = contacts;
+
+            return get_view("contacts", dto);
         });
 
     CROW_ROUTE(app, "/")
@@ -106,7 +126,7 @@ int main() {
 
     char *port = getenv("PORT");
     uint16_t iport = static_cast<uint16_t>(port != nullptr ? stoi(port) : 18080);
-    cout << "PORT = " << iport << "\n";
+    std::cout << "PORT = " << iport << "\n";
     app.port(iport).multithreaded().run();
 
     return 0;
