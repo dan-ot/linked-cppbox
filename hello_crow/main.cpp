@@ -120,6 +120,26 @@ int main() {
 
             return get_view(res, "contacts", dto);
         });
+    CROW_ROUTE(app, "/api/contacts")
+        ([&collection](const request &req) {
+            auto skip = stoi(req.url_params.get("skip"));
+            auto limit = stoi(req.url_params.get("limit"));
+            mongocxx::options::find opts;
+            opts.skip(skip);
+            opts.limit(limit);
+            auto docs = collection.find({}, opts);
+            crow::json::wvalue dto;
+            vector<crow::json::rvalue> contacts;
+
+            contacts.reserve(10);
+            for (auto doc : docs) {
+                contacts.push_back(json::load(bsoncxx::to_json(doc)));
+            }
+
+            dto["contacts"] = contacts;
+
+            return crow::response {dto};
+        });
 
     CROW_ROUTE(app, "/rest_test").methods(HTTPMethod::Post, HTTPMethod::Get, HTTPMethod::Put)
         ([](const request &req, response &res){
