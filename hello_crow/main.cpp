@@ -26,8 +26,11 @@ using namespace std;
 using namespace crow;
 using namespace crow::mustache;
 
-string get_view(const string &filename, context &x) {
-    return load(filename + ".html").render_string(x);
+void get_view(response &res, const string &filename, context &x) {
+    res.set_header("Content-Type", "text/html");
+    auto text = load(filename + ".html").render_string(x);
+    res.write(text);
+    res.end();
 }
 
 void send_file(response &res, string filename, string content_type) {
@@ -63,6 +66,12 @@ void send_style(response &res, string style) {
     send_file(res, "styles/" + style + ".css", "text/css");
 }
 
+void notFound(response &res, const string &message) {
+    res.code = 404;
+    res.write(message + ": Not found");
+    res.end();
+}
+
 int main() {
     crow::SimpleApp app;
 
@@ -72,16 +81,29 @@ int main() {
     auto collection = conn["hello"]["contacts"];
 
     CROW_ROUTE(app, "/contact/<string>")
-        ([&collection](string email) {
+        ([&collection](const request &req, response &res, string email) {
             auto doc = collection.find_one(make_document(kvp("email", email)));
             crow::json::wvalue dto;
 
             dto = json::load(bsoncxx::to_json(doc.value().view()));
-            return get_view("contact", dto);
+            return get_view(res, "contact", dto);
+        });
+
+    CROW_ROUTE(app, "/contact/<string>/<string>")
+        ([&collection](const request &req, response &res, string firstname, string lastname) {
+            auto doc = collection.find_one(make_document(kvp("firstName", firstname), kvp("lastName", lastname)));
+
+            if (!doc) {
+                return notFound(res, "Contact");
+            }
+            crow::json::wvalue dto;
+
+            dto = json::load(bsoncxx::to_json(doc.value().view()));
+            return get_view(res, "contact", dto);
         });
 
     CROW_ROUTE(app, "/contacts")
-        ([&collection]() {
+        ([&collection](const request &req, response &res) {
             mongocxx::options::find opts;
             opts.skip(9);
             opts.limit(10);
@@ -96,7 +118,7 @@ int main() {
 
             dto["contacts"] = contacts;
 
-            return get_view("contacts", dto);
+            return get_view(res, "contacts", dto);
         });
 
     CROW_ROUTE(app, "/rest_test").methods(HTTPMethod::Post, HTTPMethod::Get, HTTPMethod::Put)
@@ -130,6 +152,31 @@ int main() {
     CROW_ROUTE(app, "/<string>")
         ([](const request &req, response &res, string page){
             send_html(res, page);
+        });
+
+    CROW_ROUTE(app, "/add/<int>/<int>")
+        ([](const request &req, response &res, int a, int b) {
+            res.set_header("Content-Type", "text/plain");
+            ostringstream os;
+            os << "Integer " << a << " + " << b << " = " << a + b << "\n";
+            res.write(os.str());
+            res.end();
+        });
+    CROW_ROUTE(app, "/add/<double>/<double>")
+        ([](const request &req, response &res, double a, double b) {
+            res.set_header("Content-Type", "text/plain");
+            ostringstream os;
+            os << "Double " << a << " + " << b << " = " << a + b << "\n";
+            res.write(os.str());
+            res.end();
+        });
+    CROW_ROUTE(app, "/add/<string>/<string>")
+        ([](const request &req, response &res, string a, string b) {
+            res.set_header("Content-Type", "text/plain");
+            ostringstream os;
+            os << "String " << a << " + " << b << " = " << a + b << "\n";
+            res.write(os.str());
+            res.end();
         });
 
     char *port = getenv("PORT");
