@@ -2,6 +2,8 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
+#include <unordered_set>
+#include <mutex>
 
 #include <crow.h>
 #include <bsoncxx/v_noabi/bsoncxx/builder/stream/document.hpp>
@@ -73,12 +75,34 @@ void notFound(response &res, const string &message) {
 }
 
 int main() {
-    crow::SimpleApp app;
+    mutex mtx;
+    unordered_set<websocket::connection *> users;
+    SimpleApp app;
 
     mongocxx::instance inst {};
     string mongo_connect = string(getenv("AZURE_COSMOS_CONNECTIONSTRING"));
     mongocxx::client conn {mongocxx::uri {mongo_connect}};
     auto collection = conn["hello"]["contacts"];
+
+    CROW_WEBSOCKET_ROUTE(app, "/ws")
+        .onopen([&](websocket::connection &conn) {
+            lock_guard<mutex> _(mtx);
+            users.insert(&conn);
+        })
+        .onclose([&](websocket::connection &conn, const string &reason) {
+            lock_guard<mutex> _(mtx);
+            users.erase(&conn);
+        })
+        .onmessage([&](websocket::connection &, const string &data, bool is_binary) {
+            lock_guard<mutex> _(mtx);
+            for(auto user : users) {
+                if (is_binary) {
+                    user->send_binary(data);
+                } else {
+                    user->send_text(data);
+                }
+            }
+        });
 
     CROW_ROUTE(app, "/contact/<string>")
         ([&collection](const request &req, response &res, string email) {
