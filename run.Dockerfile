@@ -2,8 +2,8 @@ FROM alpine
 
 RUN apk update
 RUN apk add wget unzip git
-RUN apk add build-base cmake gdb pkgconfig
-RUN apk add asio
+RUN apk add build-base cmake pkgconfig
+RUN apk add asio openssl-dev
 RUN wget https://github.com/CrowCpp/Crow/releases/download/v1.2.0/Crow-1.2.0.zip
 RUN unzip Crow-1.2.0.zip
 RUN rm Crow-1.2.0.zip
